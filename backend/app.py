@@ -1,7 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS # Import CORS
 import os
+from processing.html_processor import process_html_content
 
 app = Flask(__name__)
+
+# Configure CORS
+# Allow requests from the frontend development server
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
 
 @app.route('/api/process-manual', methods=['POST'])
@@ -16,24 +22,24 @@ def process_manual_email():
     if not html_content:
         return jsonify({"error": "Missing 'html_content' in request body"}), 400
 
-    # --- Placeholder for Processing Logic ---
-    # 1. Parse HTML (e.g., using BeautifulSoup)
-    # 2. Chunk content into articles
-    # 3. Summarize/Generate headlines
-    # For now, just return the received HTML length as confirmation
+    # Call the processing function
+    result = process_html_content(html_content)
+
+    if "error" in result:
+        return jsonify(result), 500 # Or appropriate error code
+
+    # Format the response
     processed_output = {
-        "message": "Received HTML content",
-        "html_length": len(html_content),
-        "processed_chunks": [] # Placeholder for actual results
+        "message": "Received and processed HTML content",
+        **result # Unpack the results from the processor
     }
-    # ----------------------------------------
     return jsonify(processed_output)
 
 
 # New endpoint to process the sample HTML file
 @app.route('/api/process-sample', methods=['GET'])
 def process_sample_email():
-    sample_file_path = os.path.join(os.path.dirname(__file__), 'sample_email.html')
+    sample_file_path = os.path.join(os.path.dirname(__file__), 'sample_email_alternate')
 
     try:
         with open(sample_file_path, 'r', encoding='utf-8') as f:
@@ -43,18 +49,18 @@ def process_sample_email():
     except Exception as e:
         return jsonify({"error": f"Error reading sample file: {str(e)}"}), 500
 
-    # --- Placeholder for Processing Logic (Same as manual endpoint for now) ---
-    # 1. Parse HTML (e.g., using BeautifulSoup)
-    # 2. Chunk content into articles
-    # 3. Summarize/Generate headlines
+    # Call the processing function
+    result = process_html_content(html_content)
+
+    if "error" in result:
+        return jsonify(result), 500
+
+    # Format the response
     processed_output = {
         "message": "Processed sample HTML content",
         "source_file": sample_file_path,
-        "html_length": len(html_content),
-        "processed_chunks": [] # Placeholder for actual results
+        **result
     }
-    # ----------------------------------------
-
     return jsonify(processed_output)
 
 

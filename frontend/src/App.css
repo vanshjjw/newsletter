@@ -1,38 +1,75 @@
+/* Styles specific to the App component and chunk display */
+
 .App {
-  text-align: center;
+  /* text-align: center; (Keep if desired for the overall app) */
+  padding: 2%; /* Use percentage padding */
+  /* font-family is now global */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.content-container {
+  margin-top: 3%;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Stack text and links on mobile */
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  width: 100%;
 }
 
-.App-link {
-  color: #61dafb;
+.text-section,
+.links-section {
+  border: 1px solid var(--color-border);
+  border-radius: 1.5%;
+  padding: 3%;
+  margin-bottom: 4%;
+  text-align: left;
+  width: 95%;
+  background-color: var(--color-light);
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.text-section h2,
+.links-section h2 {
+  color: var(--color-dark);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5%;
+  font-size: 1.2rem;
+  margin-bottom: 2%;
 }
+
+.text-section pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: var(--font-family-monospace);
+  background-color: var(--color-background);
+  padding: 2%;
+  border: 1px solid #ddd;
+  border-radius: 1%;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.links-section ul {
+  list-style: disc; /* Or none, if preferred */
+  padding-left: 5%; /* Indent list items */
+  margin: 0;
+}
+
+.links-section li {
+  margin-bottom: 1.5%; /* Spacing between links */
+}
+
+.links-section a {
+  /* Inherits global link color */
+  word-break: break-all; /* Break long URLs */
+}
+
+/* Remove unused CRA styles like .App-logo, .App-header, .App-link, @keyframes */
+
+/* Optional: Add styles for larger screens using media queries later */
+/* @media (min-width: 768px) { */
+/*   .chunk-item { */
+/*     width: 80%; */
+/*     max-width: 700px; */
+/*   } */
+/* } */
