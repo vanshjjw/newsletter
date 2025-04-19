@@ -31,3 +31,31 @@ The user interface is key here.
 
 *   ...more
 
+
+## Implemented Features
+
+Based on the current codebase (as of initial review):
+
+**Backend (Flask - `backend/app.py`, `backend/processing/html_processor.py`)**
+
+*   **HTML Processing:**
+    *   Uses `BeautifulSoup` to parse HTML email content.
+    *   Replaces link tags (`<a>`) with a `[Link Text](Absolute URL)` format.
+    *   Extracts text from common content tags (headings, paragraphs, list items, etc.).
+    *   Applies basic filtering to remove short snippets and common boilerplate text (e.g., unsubscribe links, privacy policies).
+    *   Combines extracted text into a single block.
+*   **API Endpoints:**
+    *   `/api/process-manual` (POST): Accepts raw HTML via JSON and returns processed plain text.
+    *   `/api/process-sample` (GET): Reads a local sample email file, processes it, and returns the plain text.
+*   **CORS:** Enabled for `http://localhost:3000` to allow frontend requests.
+
+**Frontend (React + TypeScript - `frontend/src/App.tsx`, `frontend/src/services/api.ts`)**
+
+*   **API Interaction:** Contains a service function to call the backend's `/api/process-sample` endpoint.
+*   **Display:**
+    *   Fetches the processed sample email content on component load.
+    *   Shows loading and error states.
+    *   Displays the received plain text content from the backend.
+
+**Summary:** The basic pipeline for fetching a *sample* email, processing its HTML on the backend to extract and clean text, and displaying that text on the frontend is functional.
+
