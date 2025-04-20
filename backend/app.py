@@ -22,7 +22,7 @@ def hello():
 
 @app.route('/api/process-sample', methods=['GET'])
 def process_sample_email():
-    sample_file_path = os.path.join(os.path.dirname(__file__), 'sample_email_alternate')
+    sample_file_path = os.path.join(os.path.dirname(__file__), 'sample_email')
 
     try:
         with open(sample_file_path, 'r', encoding='utf-8') as f:

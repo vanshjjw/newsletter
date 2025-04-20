@@ -20,15 +20,15 @@ def generate_chunk_summary(chunk: str, api_key: str, model: str = DEFAULT_MODEL)
 
 
 def generate_group_summary(combined_chunk_text: str, api_key: str, model: str = DEFAULT_MODEL) -> Optional[Dict[str, Any]]:
-    system_prompt = "You are an expert at extracting key information from text sections. Analyze the provided text and identify the main topic, a concise summary, and any relevant hyperlinks. Provide the output strictly in JSON format."
+    system_prompt = "You are an expert at extracting key information from text sections and presenting it directly, like a news feed item. Analyze the provided text and identify the main topic, a concise summary, and any relevant hyperlinks. Provide the output strictly in JSON format. Avoid phrases like 'The author discusses...' or 'This text is about...'."
     
-    prompt = f"""Analyze the following text block from a newsletter. Extract the primary topic and summarize it concisely. Also, list the most important and directly relevant hyperlinks found within this specific text block.
+    prompt = f"""Analyze the following text block from a newsletter. Extract the primary topic and summarize its core information directly and concisely.
 
-    The text block may contain Markdown-style links like [link text](URL).
+    Extract the most important and directly relevant hyperlinks found within this specific text block.
 
-    Provide your response as a JSON object with the following exact keys:
-    - "heading": A short, relevant title for the main topic (string, max 10 words).
-    - "summary": A concise summary of the main topic (string, max 100 words).
+    Provide your response as a JSON object with the exact keys:
+    - "heading": A short, impactful title for the main topic (string, max 10 words). Write it as a direct headline.
+    - "summary": A direct summary of the main topic's core information (string, max 100 words). State the facts or key message directly.
     - "links": A JSON array of URL strings that are directly relevant to the summary. Include only the most important 1-3 links. If no relevant links are found, provide an empty array [].
 
     --- TEXT BLOCK START ---
@@ -42,8 +42,8 @@ def generate_group_summary(combined_chunk_text: str, api_key: str, model: str = 
         api_key=api_key,
         model=model,
         system_prompt=system_prompt,
-        json_mode=True, 
-        max_tokens=5000
+        json_mode=True,
+        max_tokens=1000 # Allow space for JSON structure + content
     )
 
 
@@ -78,32 +78,32 @@ def refine_and_deduplicate_summaries_llm(summary_items: List[Dict[str, Any]], ap
          current_app.logger.warning("No valid summary items to refine.")
          return []
 
-    system_prompt = "You are an expert editor specializing in consolidating information from multiple preliminary summaries into a final, concise, non-redundant list suitable for a news feed. Ensure the output is a valid JSON array."
+    system_prompt = "You are a ruthless news feed editor. Your job is to take preliminary extracted items and produce a final, extremely concise, high-impact, non-redundant list of feed items. Discard anything that isn't essential. Ensure valid JSON array output."
 
-    prompt = f"""Review the following list of extracted newsletter items, each containing a heading, summary, and related links. Some items may be redundant, or cover the same core topic.
+    prompt = f"""Review the following list of extracted newsletter items. They may contain duplicates, low-impact information, or similar topics.
 
-    Your task is to:
-    1. Identify the distinct key topics/points covered across all items.
-    2. For each distinct topic, consolidate the information into **one single** final item.
-    3. Create a final 'heading' (max 10 words) and 'summary' (max 80 words) for each consolidated topic.
-    4. Compile a 'links' list for each final item, containing only the **unique and most relevant** URLs from the input items related to that topic (max 3-4 links per item).
-    5. Ensure the final list contains only unique and informative items.
-    6. Aim for roughly **4-10 final items**.
-    7. Output **only** a valid JSON array where each element is a JSON object with the exact keys "heading", "summary", and "links".
+    Your task is to RUTHLESSLY EDIT and CONSOLIDATE these into a final list of high-impact news feed items:
+    1. Identify the absolute **most important and distinct** topics.
+    2. For each key topic, create **one single** final item, merging information if necessary.
+    3. Write a compelling, direct 'heading' (max 10 words) and 'summary' (max 50-60 words) for each final item. Focus on the core news/takeaway.
+    4. Compile **only unique and essential** 'links' for each final item (max 2-3 links).
+    5. **Discard redundant items or topics that aren't crucial news.** Aim for quality over quantity.
+    6. Produce a final list of roughly **3-6 final items** (fewer is better if the content isn't impactful).
+    7. Output **only** a valid JSON array where each element is a JSON object with the exact keys "heading", "summary", and "links". Do not include items that are not significant news.
 
     --- INPUT ITEMS ---
     {input_text}
     --- END INPUT ITEMS ---
 
-    Refined JSON Array Output:"""
+    Final High-Impact JSON Array Output (3-6 items max):"""
 
     refined_result = call_cloud_llm_api(
-        prompt=prompt, 
-        api_key=api_key, 
-        model=model, 
+        prompt=prompt,
+        api_key=api_key,
+        model=model,
         system_prompt=system_prompt,
-        json_mode=True, 
-        max_tokens=5000
+        json_mode=True,
+        max_tokens=2000
     )
 
 
