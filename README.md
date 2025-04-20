@@ -34,28 +34,40 @@ The user interface is key here.
 
 ## Implemented Features
 
-Based on the current codebase (as of initial review):
+**Backend (Flask)**
 
-**Backend (Flask - `backend/app.py`, `backend/processing/html_processor.py`)**
+*   **Code Structure:** Refactored into a `core` directory (`html_parser.py`, `text_processor.py`, `llm_api.py`, `summarisation.py`, `summarisation_helpers.py`) for better separation of concerns.
+*   **HTML Processing (`core/html_parser.py`):**
+    *   Parses HTML using `BeautifulSoup`.
+    *   Replaces `<a>` tags with Markdown-like `[Text](URL)` format, resolving relative URLs.
+    *   Extracts and cleans text content from relevant HTML tags.
+    *   Filters boilerplate/short snippets.
+*   **Text Processing (`core/text_processor.py`):**
+    *   Splits the cleaned text into initial chunks based on paragraphs (`\n\n`).
+*   **LLM Summarization Workflow (`core/summarisation.py`, `core/summarisation_helpers.py`):
+    *   **Grouping:** Dynamically groups initial text chunks to target ~15 initial processing groups.
+    *   **LLM Pass 1 (Initial Extraction):** For each group, calls the LLM API (Groq, configured via `.env`, currently `llama3-70b-8192` via `llm_api.py`) requesting structured JSON output (`{heading, summary, links[]}`). Uses prompts designed for direct, news-feed style output.
+    *   **LLM Pass 2 (Refinement & Deduplication):** Collects the structured items from Pass 1 and sends them to the LLM in a second call. Uses a prompt instructing the LLM to act as a "ruthless editor", consolidating topics, removing redundancy/low-impact content, and generating a final list (target 3-6 items) of refined JSON objects (`{heading, summary, links[]}`).
+*   **LLM API Interaction (`core/llm_api.py`):
+    *   Handles calls to the Groq API.
+    *   Supports requesting and parsing structured JSON output using assistant prefill and stop sequences.
+    *   Implements client-side rate limiting based on estimated TPM (Tokens Per Minute) to prevent API errors.
+*   **Output Saving (`core/summarisation.py`):
+    *   Saves the final list of structured summary items to a timestamped JSON file in `backend/output/` for logging/debugging.
+*   **API Endpoint (`app.py`):
+    *   `/api/process-sample` (GET): Orchestrates the full pipeline (HTML parse -> Text chunk -> LLM Pass 1 -> LLM Pass 2 -> Save output) for a hardcoded sample email file.
+    *   Returns the final list of structured summary items (`[{heading, summary, links[]}, ...]`).
+    *   `/` endpoint for basic health check.
+*   **Configuration:** Uses `.env` file for API key (`GROQ_API_KEY`).
 
-*   **HTML Processing:**
-    *   Uses `BeautifulSoup` to parse HTML email content.
-    *   Replaces link tags (`<a>`) with a `[Link Text](Absolute URL)` format.
-    *   Extracts text from common content tags (headings, paragraphs, list items, etc.).
-    *   Applies basic filtering to remove short snippets and common boilerplate text (e.g., unsubscribe links, privacy policies).
-    *   Combines extracted text into a single block.
-*   **API Endpoints:**
-    *   `/api/process-manual` (POST): Accepts raw HTML via JSON and returns processed plain text.
-    *   `/api/process-sample` (GET): Reads a local sample email file, processes it, and returns the plain text.
-*   **CORS:** Enabled for `http://localhost:3000` to allow frontend requests.
+**Frontend (React + TypeScript - Needs Update)**
 
-**Frontend (React + TypeScript - `frontend/src/App.tsx`, `frontend/src/services/api.ts`)**
+*   The existing frontend (`frontend/src/App.tsx`, `frontend/src/services/api.ts`) is **outdated**.
+*   It currently fetches and displays only plain text from an older version of the `/api/process-sample` endpoint.
+*   **Needs significant updates** to:
+    *   Handle the new API response format: `List[Dict[str, Any]]` where each dict has `heading`, `summary`, `links`.
+    *   Render the structured data as a feed (headings, summaries, clickable links).
+    *   Implement the desired mobile-first, TikTok/Reels style scrolling UI.
 
-*   **API Interaction:** Contains a service function to call the backend's `/api/process-sample` endpoint.
-*   **Display:**
-    *   Fetches the processed sample email content on component load.
-    *   Shows loading and error states.
-    *   Displays the received plain text content from the backend.
-
-**Summary:** The basic pipeline for fetching a *sample* email, processing its HTML on the backend to extract and clean text, and displaying that text on the frontend is functional.
+**Overall Summary:** The backend has been significantly enhanced with a two-stage LLM summarization pipeline using a cloud API, producing structured output with headings and links. It includes rate limiting and saves results. The core logic is refactored. The frontend now requires updates to consume and display this richer data format and implement the target UI.
 
