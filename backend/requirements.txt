@@ -1,8 +1,6 @@
 Flask>=2.0
 beautifulsoup4>=4.9.0
 lxml>=4.6.0
-Flask-CORS>=3.0.0
-# For LLM API calls
+Flask-CORS>=3.0.0 
 requests
-# For loading .env file during development
 python-dotenv 
